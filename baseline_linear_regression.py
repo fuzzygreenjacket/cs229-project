@@ -19,7 +19,7 @@ features = [
     "Revenue of Government-Managed Funds(CNY,B)"
 ]
 
-outcome = "Non-Standard Financing Balance /LGFV Interest-bearing Debt(%)"
+outcome = "LGFV Interest-bearing Debt(CNY,B) / GDP(CNY,B)"
 
 for feature in features:
     df = df[df[feature] != "--"]
