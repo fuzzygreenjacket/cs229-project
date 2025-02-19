@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 
-df = pd.read_excel("merged_city_year_panel milestone.xlsx")
+df = pd.read_excel("merged_city_year_panel milestone updated.xlsx")
 features = [
     "GDP(CNY,B)",
     "Growth Rate of GDP(%)",
