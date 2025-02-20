@@ -1,3 +1,10 @@
+# this is baseline linear regression for the four experiments that Cheryl suggested
+# 1. All the listed features predicting LGFV interest bearing debt/GDP
+# 2. All the listed features predicting balance of urban investment bond/GDP
+# 3. All the listed features + real estate investment/GDP predicting LGFV interest bearing debt/GDP
+# 4. All the listed features + real estate investment/GDP predicting urban investment bond/GDP
+# feature engineering will happen in a different file
+
 # code structure inspired by https://www.geeksforgeeks.org/linear-regression-using-pytorch/ 
 import random
 import numpy as np
@@ -34,7 +41,8 @@ to_clean = [
     "Balance of Urban Investment Bond(CNY,B)"
 ]
 
-for col in to_clean:   # remove all -- cells
+# remove all -- cells
+for col in to_clean:
     df = df[df[col] != "--"]
 
 # convert data type to numbers
@@ -76,6 +84,7 @@ features1 = [
     "Revenue of Government-Managed Funds(CNY,B)",
     "State-owned Land Transfer Income/Budget Revenue(%)"
 ] # without real estate investment
+
 
 features2 = features1 + ["Real Estate Investment(CNY,B) / GDP(CNY,B)"] # with real estate investment
 
