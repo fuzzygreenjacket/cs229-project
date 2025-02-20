@@ -47,7 +47,6 @@ for col in to_clean:
 
 # convert data type to numbers
 df[to_clean] = df[to_clean].apply(pd.to_numeric, errors='raise')
-df[to_clean] = df[to_clean].apply(pd.to_numeric, errors='raise')
 
 # creating new columns by dividing
 df["LGFV Interest-bearing Debt(CNY,B) / GDP(CNY,B)"] = df["LGFV Interest-bearing Debt(CNY,B)"]/df["GDP(CNY,B)"] # outcome 1
