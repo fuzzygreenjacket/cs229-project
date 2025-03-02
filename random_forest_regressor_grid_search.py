@@ -1,6 +1,4 @@
-# Calculating random forest regression for best feature combinations
-# for respective outcomes and plotting them
-# Uses best hyperparameters from random_forest_regressor_grid_search.py
+# Computing best hyperparameters for random forest regressor
 
 import random
 import numpy as np
@@ -15,7 +13,7 @@ from sklearn.metrics import r2_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.metrics import mean_squared_error
-
+from sklearn.model_selection import GridSearchCV
 
 df = pd.read_excel("merged_city_year_panel milestone updated.xlsx")
 
@@ -85,69 +83,39 @@ features2 = [
 
 outcomes = [outcome1, outcome2] # list of possible outcomes 
 
-# optimal hyperparameters for each outcome
-hyperparams1 = ["poisson", 5, 2, 1000]
-hyperparams2 = ["squared_error", 5, 2, 100]
+def forest_grid_search(outcome, features, num):
 
+    # note: we are not grouping by year when splitting x_train and y_train when running the grid search
+    # because it allows us to automate the cross-validation and we don't believe it will have a significant
+    # impact on the optimal hyperparameters
+    x_train = df[features]
+    y_train = df[outcome]
 
-# arguments are: outcome to predict, features to use, hyperparameters to use, 
-# and num is just to keep track of what number outcome this is (useful for printing)
-def random_forest_regressor(outcome, features, hyperparams, num):
-
-    # create train/test split
-    train_data = pd.DataFrame()
-    test_data = pd.DataFrame()
-    for year, group in df.groupby('year'):
-        train, test = train_test_split(group, test_size=.2)
-        train_data = pd.concat([train_data, train], ignore_index=True)
-        test_data = pd.concat([test_data, test], ignore_index=True)                                                 
-
-    x_train = train_data[features]
-    x_test = test_data[features]
-    y_train = train_data[outcome]
-    y_test = test_data[outcome]
-
-    # run random forest regressor
-    # with scaled data
     pipeline = make_pipeline(
         StandardScaler(),
-        RandomForestRegressor(
-            criterion=hyperparams[0],
-            min_samples_leaf=hyperparams[1],
-            min_samples_split=hyperparams[2],
-            n_estimators=hyperparams[3]
-        )
+        RandomForestRegressor()
     )
-    pipeline.fit(x_train, y_train)
-    predictions = pipeline.predict(x_test)
 
-    # compute MSE
-    mse = mean_squared_error(y_test, predictions)
+    # test different hyperparameters with grid_cv
+    grid_cv = GridSearchCV(
+        pipeline,
+        param_grid = {
+            "randomforestregressor__n_estimators": [10, 100, 1000],
+            "randomforestregressor__criterion": ["squared_error", "friedman_mse", "poisson"],
+            "randomforestregressor__min_samples_split": [1.0, 2, 3],
+            "randomforestregressor__min_samples_leaf": [1, 5]
+        },
+        scoring="neg_mean_squared_error",
+        cv=5
+    )
 
-    # compute r2 score
-    r2 = r2_score(y_test, predictions)
-
-    print(f'MSE: {mse}')
-    print(f'R2: {r2}')
-
-    # select 100 random points to plot (otherwise too crowded)
-    sample = np.random.choice(len(y_test), 50, replace=False)
-    predictions_sample = predictions[sample]
-    test_sample = y_test[sample]
-    
-    # scatterplot
-    plt.figure(figsize=(7, 5))
-    plt.scatter(range(len(test_sample)), test_sample, label="Actual Values", alpha=0.5, color="blue")
-    plt.scatter(range(len(predictions_sample)), predictions_sample, label="Predicted Values", alpha=0.5, color="orange")
-
-    plt.xlabel("Sample")
-    plt.ylabel(outcome)
-    plt.title("True vs. Predicted Values")
-    plt.legend()
-    plt.savefig("forest_plot_" + str(num) + ".png", dpi=300) 
-    plt.show()
+    grid_cv.fit(x_train, y_train)
+    print(grid_cv.best_params_)
 
 # run forest_regression
-random_forest_regressor(outcome1, features1, hyperparams1, 1)
-random_forest_regressor(outcome2, features2, hyperparams2, 2)
+forest_grid_search(outcome1, features1, 1)
+forest_grid_search(outcome2, features2, 2)
 
+# result:
+# {'randomforestregressor__criterion': 'poisson', 'randomforestregressor__min_samples_leaf': 5, 'randomforestregressor__min_samples_split': 2, 'randomforestregressor__n_estimators': 1000}
+# {'randomforestregressor__criterion': 'squared_error', 'randomforestregressor__min_samples_leaf': 5, 'randomforestregressor__min_samples_split': 2, 'randomforestregressor__n_estimators': 100}
