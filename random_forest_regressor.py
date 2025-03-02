@@ -10,10 +10,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
-from itertools import combinations
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.metrics import mean_squared_error
 
 
 df = pd.read_excel("merged_city_year_panel milestone updated.xlsx")
@@ -84,7 +86,7 @@ features2 = [
 
 outcomes = [outcome1, outcome2] # list of possible outcomes 
 
-def lin_reg(outcome, features, num):
+def random_forest_regressor(outcome, features, num):
 
     # create train/test split
     train_data = pd.DataFrame()
@@ -94,60 +96,32 @@ def lin_reg(outcome, features, num):
         train_data = pd.concat([train_data, train], ignore_index=True)
         test_data = pd.concat([test_data, test], ignore_index=True)                                                 
 
-    # scale data
-    scaler = StandardScaler()
-    scaler.fit(train_data[all_features])
-    train_data[all_features] = scaler.transform(train_data[all_features])
-    scaler.fit(test_data[all_features])
-    test_data[all_features] = scaler.transform(test_data[all_features])
-    scaler.fit(train_data[outcomes])
-    train_data[outcomes] = scaler.transform(train_data[outcomes])
-    scaler.fit(test_data[outcomes])
-    test_data[outcomes] = scaler.transform(test_data[outcomes])
+    x_train = train_data[features]
+    x_test = test_data[features]
+    y_train = train_data[outcome]
+    y_test = test_data[outcome]
 
-    class LinearRegression(nn.Module):
-        def __init__(self, num_features):
-            super(LinearRegression, self).__init__()
-            self.linear = nn.Linear(num_features, 1)
-
-        def forward(self, x):
-            return self.linear(x)
-
-    x_train = torch.from_numpy(train_data[features].to_numpy()).type(torch.float32)
-    x_test = torch.from_numpy(test_data[features].to_numpy()).type(torch.float32)
-    y_train = torch.from_numpy(train_data[outcome].to_numpy()).type(torch.float32)
-    y_test = torch.from_numpy(test_data[outcome].to_numpy()).type(torch.float32)
-
-    model = LinearRegression(len(features))
-    criterion = nn.MSELoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-
-    num_epochs = 1000
-    for i in range(num_epochs):
-        optimizer.zero_grad()
-        y_predict = model(x_train)
-        loss = criterion(y_predict.squeeze(), y_train)
-        loss.backward()
-        optimizer.step()
-
-    predictions = model(x_test).squeeze()
+    pipeline = make_pipeline(
+        StandardScaler(),
+        RandomForestRegressor()
+    )
+    pipeline.fit(x_train, y_train)
+    predictions = pipeline.predict(x_test)
 
     # compute MSE
-    mse = criterion(predictions.squeeze(), y_test)
+    mse = mean_squared_error(y_test, predictions)
 
     # compute r2 score
-    predictions_np = predictions.detach().numpy()
-    y_test_np = y_test.detach().numpy()
-    r2 = r2_score(y_test_np, predictions_np)
+    r2 = r2_score(y_test, predictions)
 
     print(f'MSE: {mse}')
     print(f'R2: {r2}')
 
     # select 100 random points to plot (otherwise too crowded)
-    sample = np.random.choice(len(y_test_np), 50, replace=False)
-    predictions_sample = predictions.detach().numpy()[sample]
-    test_sample = y_test_np[sample]
-
+    sample = np.random.choice(len(y_test), 50, replace=False)
+    predictions_sample = predictions[sample]
+    test_sample = y_test[sample]
+    
     # scatterplot
     plt.figure(figsize=(7, 5))
     plt.scatter(range(len(test_sample)), test_sample, label="Actual Values", alpha=0.5, color="blue")
@@ -158,11 +132,10 @@ def lin_reg(outcome, features, num):
     plt.title("True vs. Predicted Values")
     # plt.text(5, max(test_sample) * 0.9, f'MSE: {mse:.4f}\nR²: {r2:.4f}', fontsize=10, fontweight='bold')
     plt.legend()
-    plt.savefig("residual_plot_" + str(num) + ".png", dpi=300) 
+    plt.savefig("forest_plot_" + str(num) + ".png", dpi=300) 
     plt.show()
 
-
-# run linear regression
-lin_reg(outcome1, features1, 1)
-lin_reg(outcome2, features2, 2)
+# run feature engineering
+random_forest_regressor(outcome1, features1, 1)
+random_forest_regressor(outcome2, features2, 2)
 
