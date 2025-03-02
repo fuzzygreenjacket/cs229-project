@@ -1,7 +1,5 @@
-# Calculating baseline linear regression for best feature combinations
+# Calculating random forest regression for best feature combinations
 # for respective outcomes and plotting them
-
-# code structure inspired by https://www.geeksforgeeks.org/linear-regression-using-pytorch/ 
 
 import random
 import numpy as np
@@ -130,12 +128,11 @@ def random_forest_regressor(outcome, features, num):
     plt.xlabel("Sample")
     plt.ylabel(outcome)
     plt.title("True vs. Predicted Values")
-    # plt.text(5, max(test_sample) * 0.9, f'MSE: {mse:.4f}\nR²: {r2:.4f}', fontsize=10, fontweight='bold')
     plt.legend()
     plt.savefig("forest_plot_" + str(num) + ".png", dpi=300) 
     plt.show()
 
-# run feature engineering
+# run forest_regression
 random_forest_regressor(outcome1, features1, 1)
 random_forest_regressor(outcome2, features2, 2)
 
