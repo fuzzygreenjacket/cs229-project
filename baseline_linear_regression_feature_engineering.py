@@ -92,17 +92,6 @@ def feature_engineering():
         train_data = pd.concat([train_data, train], ignore_index=True)
         test_data = pd.concat([test_data, test], ignore_index=True)                                                 
 
-    # scale data
-    scaler = StandardScaler()
-    scaler.fit(train_data[all_features])
-    train_data[all_features] = scaler.transform(train_data[all_features])
-    scaler.fit(test_data[all_features])
-    test_data[all_features] = scaler.transform(test_data[all_features])
-    scaler.fit(train_data[outcomes])
-    train_data[outcomes] = scaler.transform(train_data[outcomes])
-    scaler.fit(test_data[outcomes])
-    test_data[outcomes] = scaler.transform(test_data[outcomes])
-
     class LinearRegression(nn.Module):
         def __init__(self, num_features):
             super(LinearRegression, self).__init__()
@@ -113,6 +102,16 @@ def feature_engineering():
 
     for outcome in outcomes:
         for features in feature_combinations:
+            # scale data
+            feature_scaler = StandardScaler()
+            feature_scaler.fit(train_data[all_features])
+            train_data[all_features] = feature_scaler.transform(train_data[all_features])
+            test_data[all_features] = feature_scaler.transform(test_data[all_features])
+            outcome_scaler = StandardScaler()
+            outcome_scaler.fit(train_data[[outcome]])
+            train_data[outcome] = outcome_scaler.transform(train_data[[outcome]])
+            test_data[outcome] = outcome_scaler.transform(test_data[[outcome]])
+
             x_train = torch.from_numpy(train_data[features].to_numpy()).type(torch.float32)
             x_test = torch.from_numpy(test_data[features].to_numpy()).type(torch.float32)
             y_train = torch.from_numpy(train_data[outcome].to_numpy()).type(torch.float32)
@@ -132,12 +131,20 @@ def feature_engineering():
 
             predictions = model(x_test).squeeze()
 
+            # transform the data back
+            predictions_original = outcome_scaler.inverse_transform(predictions.detach().numpy().reshape(-1, 1))
+            y_test_original = outcome_scaler.inverse_transform(y_test.numpy().reshape(-1, 1))
+
+            # convert to tensor
+            predictions_tensor = torch.from_numpy(predictions_original).type(torch.float32)
+            y_test_tensor = torch.from_numpy(y_test_original).type(torch.float32)
+            
             # compute MSE
-            mse = criterion(predictions.squeeze(), y_test)
+            mse = criterion(predictions_tensor.squeeze(), y_test_tensor.squeeze())
 
             # compute r2 score
-            predictions_np = predictions.detach().numpy()
-            y_test_np = y_test.detach().numpy()
+            predictions_np = predictions_original
+            y_test_np = y_test_original
             r2 = r2_score(y_test_np, predictions_np)
 
             # update dictionary of scores

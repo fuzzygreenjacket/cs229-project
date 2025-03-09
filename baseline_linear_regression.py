@@ -93,18 +93,6 @@ outcome2 = "Balance of Urban Investment Bond(CNY,B) / GDP(CNY,B)"
 feature_combinations = [features1, features2] # list of lists of feature combinations
 outcomes = [outcome1, outcome2] # list of possible outcomes
                                                                 
-
-# scale data
-scaler = StandardScaler()
-scaler.fit(train_data[all_features])
-train_data[all_features] = scaler.transform(train_data[all_features])
-scaler.fit(test_data[all_features])
-test_data[all_features] = scaler.transform(test_data[all_features])
-scaler.fit(train_data[outcomes])
-train_data[outcomes] = scaler.transform(train_data[outcomes])
-scaler.fit(test_data[outcomes])
-test_data[outcomes] = scaler.transform(test_data[outcomes])
-
 class LinearRegression(nn.Module):
     def __init__(self, num_features):
         super(LinearRegression, self).__init__()
@@ -115,6 +103,16 @@ class LinearRegression(nn.Module):
 
 for features in feature_combinations:
     for outcome in outcomes:
+        # scale data
+        feature_scaler = StandardScaler()
+        feature_scaler.fit(train_data[all_features])
+        train_data[all_features] = feature_scaler.transform(train_data[all_features])
+        test_data[all_features] = feature_scaler.transform(test_data[all_features])
+        outcome_scaler = StandardScaler()
+        outcome_scaler.fit(train_data[[outcome]])
+        train_data[outcome] = outcome_scaler.transform(train_data[[outcome]])
+        test_data[outcome] = outcome_scaler.transform(test_data[[outcome]])
+
         x_train = torch.from_numpy(train_data[features].to_numpy()).type(torch.float32)
         x_test = torch.from_numpy(test_data[features].to_numpy()).type(torch.float32)
         y_train = torch.from_numpy(train_data[outcome].to_numpy()).type(torch.float32)
@@ -136,9 +134,20 @@ for features in feature_combinations:
 
         predictions = model(x_test).squeeze()
 
+        # transform the data back
+        predictions_original = outcome_scaler.inverse_transform(predictions.detach().numpy().reshape(-1, 1))
+        y_test_original = outcome_scaler.inverse_transform(y_test.numpy().reshape(-1, 1))
+
+        # convert to tensor
+        predictions_tensor = torch.from_numpy(predictions_original).type(torch.float32)
+        y_test_tensor = torch.from_numpy(y_test_original).type(torch.float32)
+        
+        # compute MSE
+        mse = criterion(predictions_tensor.squeeze(), y_test_tensor.squeeze())
+
         print(f'Features: {features}')
         print(f'Outcome: {outcome}')
-        print(f'Test Set MSE: {criterion(predictions.squeeze(), y_test)}')
+        print(f'Test Set MSE: {mse}')
 
         plt.clf()
         plt.scatter(x_test[:, 0].numpy(), predictions.detach().numpy(), label='Predictions', alpha=0.4, color='blue') # pick one item on x_axis
