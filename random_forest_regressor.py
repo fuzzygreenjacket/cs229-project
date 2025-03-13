@@ -127,8 +127,11 @@ def random_forest_regressor(outcome, features, hyperparams, num):
     # compute r2 score
     r2 = r2_score(y_test, predictions)
 
+    log_error = -np.log(mse + 1e-10)
+
     print(f'MSE: {mse}')
     print(f'R2: {r2}')
+    print(f'log error: {log_error}')
 
     # select 100 random points to plot (otherwise too crowded)
     sample = np.random.choice(len(y_test), 50, replace=False)
@@ -139,7 +142,6 @@ def random_forest_regressor(outcome, features, hyperparams, num):
     plt.figure(figsize=(7, 5))
     plt.scatter(range(len(test_sample)), test_sample, label="Actual Values", alpha=0.5, color="blue")
     plt.scatter(range(len(predictions_sample)), predictions_sample, label="Predicted Values", alpha=0.5, color="orange")
-
     plt.xlabel("Sample")
     plt.ylabel(outcome)
     plt.title("True vs. Predicted Values")
@@ -161,7 +163,30 @@ def random_forest_regressor(outcome, features, hyperparams, num):
     fig.tight_layout()
     fig.savefig("feature_importances_" + str(num) + ".png")
 
+    # histogram
+    plt.clf()
+    deltas = abs(predictions - y_test)
+    if outcome == outcome1:
+        plt.hist(deltas, bins=np.arange(0, 1.25, 0.05))
+    elif outcome == outcome2:
+        plt.hist(deltas, bins=np.arange(0, 0.5, 0.025))
+    else:
+        plt.hist(deltas)
+    plt.savefig("random_forest_histogram" + str(num) + ".png", dpi=300) 
+    plt.show()
+    return mse, r2, log_error
+
 # run forest_regression
 random_forest_regressor(outcome1, features1, hyperparams1, 1)
 random_forest_regressor(outcome2, features2, hyperparams2, 2)
 
+# this code was used to run random forest regression 100 times and average the results
+'''outcome_1_average = 0
+outcome_2_average = 0
+
+for i in range(100):
+    outcome_1_average += random_forest_regressor(outcome1, features1, hyperparams1, 1)
+    outcome_2_average += random_forest_regressor(outcome2, features2, hyperparams2, 2)
+
+print(outcome_1_average/100)
+print(outcome_2_average/100)'''

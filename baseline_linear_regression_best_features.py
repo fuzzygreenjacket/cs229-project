@@ -14,6 +14,7 @@ from itertools import combinations
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_log_error
 
 
 df = pd.read_excel("merged_city_year_panel milestone updated.xlsx")
@@ -73,6 +74,7 @@ features1 = [
     "Revenue of Government-Managed Funds(CNY,B)", 
     "Real Estate Investment(CNY,B)"
 ]
+features1 = ["Debt Ratio(%)"]
 
 # optimal features for outcome 2
 features2 = [
@@ -119,6 +121,7 @@ def lin_reg(outcome, features, num):
 
     model = LinearRegression(len(features))
     criterion = nn.MSELoss()
+    # criterion = nn.HuberLoss()
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
     num_epochs = 1000
@@ -146,9 +149,12 @@ def lin_reg(outcome, features, num):
     predictions_np = predictions_original
     y_test_np = y_test_original
     r2 = r2_score(y_test_np, predictions_np)
+    log_error = -np.log(mse + 1e-10)
 
     print(f'MSE: {mse}')
+    # print(f'Huber: {huber}')
     print(f'R2: {r2}')
+    print(f'log error: {log_error}')
 
     # select 100 random points to plot (otherwise too crowded)
     sample = np.random.choice(len(y_test_np), 50, replace=False)
@@ -163,13 +169,39 @@ def lin_reg(outcome, features, num):
     plt.xlabel("Sample")
     plt.ylabel(outcome)
     plt.title("True vs. Predicted Values")
-    # plt.text(5, max(test_sample) * 0.9, f'MSE: {mse:.4f}\nR²: {r2:.4f}', fontsize=10, fontweight='bold')
     plt.legend()
     plt.savefig("residual_plot_" + str(num) + ".png", dpi=300) 
     plt.show()
+
+    # histogram
+    plt.clf()
+    deltas = abs(predictions_original - y_test_original)
+    # manually set bin size based on outcome
+    if outcome == outcome1:
+        plt.hist(deltas, bins=np.arange(0, 1.25, 0.05))
+    elif outcome == outcome2:
+        plt.hist(deltas, bins=np.arange(0, 0.5, 0.025))
+    else:
+        plt.hist(deltas)
+    plt.savefig("lin_reg_histogram" + str(num) + ".png", dpi=300) 
+    plt.show()
+
+    return mse, r2, log_error
 
 
 # run linear regression
 lin_reg(outcome1, features1, 1)
 lin_reg(outcome2, features2, 2)
+
+
+# this code was used to run linear regression 100 times and average the results
+'''outcome_1_average = 0
+outcome_2_average = 0
+
+for i in range(100):
+    outcome_1_average += lin_reg(outcome1, features1, 1)
+    outcome_2_average += lin_reg(outcome2, features2, 2)
+
+print(outcome_1_average/100)
+print(outcome_2_average/100)'''
 
