@@ -172,6 +172,8 @@ def random_forest_regressor(outcome, features, hyperparams, num):
         plt.hist(deltas, bins=np.arange(0, 0.5, 0.025))
     else:
         plt.hist(deltas)
+    plt.xlabel("Difference Between Prediction and True Value")
+    plt.ylabel("Count")
     plt.savefig("random_forest_histogram" + str(num) + ".png", dpi=300) 
     plt.show()
     return mse, r2, log_error
