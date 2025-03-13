@@ -69,19 +69,20 @@ outcome2 = "Balance of Urban Investment Bond(CNY,B) / GDP(CNY,B)"
 features1 = [
     "Liability Ratio(%)", 
     "Debt Ratio(%)", 
-    "Comprehensive Financial Resources(CNY,B)",
+    "Growth Rate of GDP(%)",
     "Fiscal Self-sufficiency(%)",
-    "Revenue of Government-Managed Funds(CNY,B)", 
-    "Real Estate Investment(CNY,B)"
+    "Budget Revenue(CNY,B)",
+    "State-owned Land Transfer Income/Budget Revenue(%)"
 ]
-features1 = ["Debt Ratio(%)"]
 
 # optimal features for outcome 2
 features2 = [
-    "Comprehensive Financial Resources(CNY,B)", 
+    "Liability Ratio(%)", 
+    "Debt Ratio(%)", 
+    "Growth Rate of GDP(%)",
     "Fiscal Self-sufficiency(%)",
-    "Revenue of Government-Managed Funds(CNY,B)", 
-    "Real Estate Investment(CNY,B)" 
+    "Budget Revenue(CNY,B)",
+    "State-owned Land Transfer Income/Budget Revenue(%)"
 ]
 
 outcomes = [outcome1, outcome2] # list of possible outcomes 
