@@ -168,8 +168,10 @@ def random_forest_regressor(outcome, features, hyperparams, num):
     deltas = abs(predictions - y_test)
     if outcome == outcome1:
         plt.hist(deltas, bins=np.arange(0, 1.25, 0.05))
+        plt.ylim(0, 150)
     elif outcome == outcome2:
         plt.hist(deltas, bins=np.arange(0, 0.5, 0.025))
+        plt.ylim(0, 200)
     else:
         plt.hist(deltas)
     plt.xlabel("Difference Between Prediction and True Value")
@@ -183,12 +185,27 @@ random_forest_regressor(outcome1, features1, hyperparams1, 1)
 random_forest_regressor(outcome2, features2, hyperparams2, 2)
 
 # this code was used to run random forest regression 100 times and average the results
-'''outcome_1_average = 0
-outcome_2_average = 0
+'''mse1_average = 0
+mse2_average = 0
+r21_average = 0
+r22_average = 0
+log_error1_average = 0
+log_error2_average = 0
 
-for i in range(100):
-    outcome_1_average += random_forest_regressor(outcome1, features1, hyperparams1, 1)
-    outcome_2_average += random_forest_regressor(outcome2, features2, hyperparams2, 2)
+for i in range(1000):
+    mse1, r21, log_error1 = random_forest_regressor(outcome1, features1, hyperparams1, 1)
+    mse2, r22, log_error2 =  random_forest_regressor(outcome2, features2, hyperparams2, 2)
+    mse1_average += mse1
+    mse2_average += mse2
+    r21_average += r21
+    r22_average += r22
+    log_error1_average += log_error1
+    log_error2_average += log_error2
 
-print(outcome_1_average/100)
-print(outcome_2_average/100)'''
+
+print(mse1_average/1000)
+print(mse2_average/1000)
+print(r21_average/1000)
+print(r22_average/1000)
+print(log_error1_average/1000)
+print(log_error2_average/1000)'''
