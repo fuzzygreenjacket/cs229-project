@@ -2,20 +2,15 @@
 
 ## Overview
 This repository contains code and analysis related to evaluating the debt sustainability and risk associated with China's Local Government Financing Vehicles (LGFVs). Using machine learning techniques, we examine the relationships between macroeconomic conditions, local financial indicators, and LGFV debt metrics, specifically focusing on two outcomes:
-\begin{itemize}
-	\item LGFV Interest-Bearing Debt / GDP
-	\item Balance of Urban Investment Bond / GDP
-\end{itemize}
-
+- LGFV Interest-Bearing Debt / GDP
+- Balance of Urban Investment Bond / GDP
 Our goal is to provide predictive insights that aid in identifying municipalities at higher risk of financial difficulties.
 
 ## Dataset
 
 We analyze LGFV debt data alongside macroeconomic indicators across all prefecture-level cities in China from 2018 to 2023. Data sources include:
-\begin{itemize}
-	\item Wind Database
-	\item Chinese Statistical Yearbooks
-\end{itemize}
+- Wind Database
+- Chinese Statistical Yearbooks
 
 ## File Description
 Our repository contains the following key files:
