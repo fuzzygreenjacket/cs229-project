@@ -24,6 +24,8 @@ Our repository contains the following key files:
 - `random_forest_regressor_grid_search.py` — Hyperparameter tuning via grid search for Random Forest.
 - `rnn.py` — Recurrent Neural Network implementation.
 - `rnn_hyperparam.py` — Hyperparameter tuning for the RNN.
+- `ensemble.py` — Weighted ensemble model (RNN and Random Forest) Implementation.
+
 
 ## Methods
 - **Linear Regression** (Baseline)
