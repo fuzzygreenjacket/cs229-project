@@ -144,7 +144,7 @@ def evaluate_model(features_used, outcome_col):
     for _ in range(1000):
         indices = np.random.choice(n, size=n, replace=True)
         mse_sample = np.mean((y_test_orig[indices] - preds_orig[indices])**2)
-        perf_scores.append(-np.log(mse_sample))
+        perf_scores.append(-np.log(mse_sample + 1e-10))
     performance_metric = np.mean(perf_scores)
     mse_value = np.mean((y_test_orig - preds_orig)**2)
     r2 = r2_score(y_test_orig, preds_orig)
