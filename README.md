@@ -32,7 +32,7 @@ Our repository contains the following key files:
 - **Ensemble Model** (Integration of RNN and Random Forest)
 
 ## Evaluation
-Models are evaluated using Mean Squared Error (MSE) with bootstrap resampling and $R^2$ scores. To be precise, our performance metric is defined as follows: $\frac{1}{1000}\sum_{j=1}^{1000}\left[-\log\left(\frac{1}{n}\sum_{i=1}^{n}\left(y_{ij}-\hat{y}_{ij}\right)^2\right)\right]$. SHAP analysis to identify key predictors influencing model decisions.
+Models are evaluated using Mean Squared Error (MSE) with bootstrap resampling and $R^2$ scores. To be precise, our performance metric is defined as follows: $\frac{1}{1000}\sum_{j=1}^{1000}\left[-\log\left(\frac{1}{n}\sum_{i=1}^{n}\left(y_{ij}-\hat{y}_{ij}\right)^2\right)\right]$. We then use SHAP analysis to identify key predictors influencing model decisions.
 
 ## Usage
 To replicate the analyses:
