@@ -9,8 +9,10 @@ import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
+from sklearn.preprocessing import StandardScaler
 import shap
-import jinja2
+from bayes_opt import BayesianOptimization
+
 
 
 df = pd.read_excel("merged_city_year_panel milestone updated.xlsx")
@@ -57,11 +59,11 @@ all_features = [
     "State-owned Land Transfer Income/Budget Revenue(%)"
 ]
 
+# explain why I chose these
 best_features = [
     "Liability Ratio(%)",
     "Debt Ratio(%)",
     "Growth Rate of GDP(%)",
-    "Comprehensive Financial Resources(CNY,B)",
     "Fiscal Self-sufficiency(%)",
     "Budget Revenue(CNY,B)",
     "State-owned Land Transfer Income/Budget Revenue(%)"
@@ -79,9 +81,32 @@ X = df[all_features]
 y1 = df[outcome1]  # Target variable for model1
 y2 = df[outcome2]  # Target variable for model2
 
-# Perform a random split (80% train, 20% test)
-X_train, X_test, y_train1, y_test1 = train_test_split(X, y1, test_size=0.2, random_state=123)
-X_train, X_test, y_train2, y_test2 = train_test_split(X, y2, test_size=0.2, random_state=123)
+# Initialize the StandardScaler
+scaler = StandardScaler()
+
+# Create empty DataFrames for train and test sets
+train_data = pd.DataFrame()
+test_data = pd.DataFrame()
+
+# Perform 80/20 split for each year separately
+for year, group in df.groupby('Year'):
+    train, test = train_test_split(group, test_size=0.2, random_state=123)
+    train_data = pd.concat([train_data, train], ignore_index=True)
+    test_data = pd.concat([test_data, test], ignore_index=True)
+
+# Extract features and target variables after splitting
+X_train = train_data[all_features]
+X_test = test_data[all_features]
+
+y_train1 = train_data[outcome1]
+y_test1 = test_data[outcome1]
+
+y_train2 = train_data[outcome2]
+y_test2 = test_data[outcome2]
+
+# Apply StandardScaler on training features and transform both train & test sets
+X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
+X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns)
 
 # Convert data to DMatrix format (for XGBoost)
 dtrain1 = xgb.DMatrix(X_train, label=y_train1)
@@ -90,14 +115,36 @@ dtest1 = xgb.DMatrix(X_test, label=y_test1)
 dtrain2 = xgb.DMatrix(X_train, label=y_train2)
 dtest2 = xgb.DMatrix(X_test, label=y_test2)
 
+def xgb_evaluate(learning_rate, max_depth, subsample, colsample_bytree):
+    params = {
+        'objective': 'reg:pseudohubererror',
+        'eval_metric': 'rmse',
+        'learning_rate': learning_rate,
+        'max_depth': int(max_depth),
+        'subsample': subsample,
+        'colsample_bytree': colsample_bytree
+    }
+    model = xgb.train(params, dtrain1, num_boost_round=100, evals=[(dtest1, "eval")], verbose_eval=False)
+    preds = model.predict(dtest1)
+    return -mean_squared_error(y_test1, preds)  # Minimize MSE
+
+optimizer = BayesianOptimization(
+    f=xgb_evaluate,
+    pbounds={'learning_rate': (0.01, 0.2), 'max_depth': (3, 10), 'subsample': (0.7, 1), 'colsample_bytree': (0.7, 1)},
+    random_state=123
+)
+optimizer.maximize(init_points=5, n_iter=25)
+
+print("Best Parameters:", optimizer.max)
+
 # Define XGBoost parameters
 params = {
     "objective": "reg:squarederror",
     "eval_metric": "rmse",
-    "learning_rate": 0.05,
-    "max_depth": 5,  # Reduce max_depth to prevent deep trees#
+    "learning_rate": 0.14,
+    "max_depth": 10,  # Reduce max_depth to prevent deep trees#
     "subsample": 0.8,
-    "colsample_bytree": 0.8,
+    "colsample_bytree": 0.77,
     "reg_alpha": 5,  # L1 regularization (adds sparsity, removes irrelevant features)
     "reg_lambda": 10  # L2 regularization (reduces model complexity)
 }
@@ -141,6 +188,27 @@ print(f"Test R² for {outcome1}: {r2_test1}")
 print(f"Training R² for {outcome2}: {r2_train2}")
 print(f"Test R² for {outcome2}: {r2_test2}")
 
+# Bootstrap resampling
+n = len(y_test1)
+bootstrap_iterations = 1000
+
+def bootstrap_evaluation(y_test, y_pred):
+    n = len(y_test)
+    perf_scores = []
+    for _ in range(bootstrap_iterations):
+        indices = np.random.choice(n, size=n, replace=True)
+        mse_sample = np.mean((y_test.iloc[indices] - y_pred[indices])**2)
+        perf_scores.append(-np.log(mse_sample + 1e-10))
+    performance_metric = np.mean(perf_scores)
+    mse_value = np.mean((y_test - y_pred)**2)
+    r2 = r2_score(y_test, y_pred)
+    return performance_metric, mse_value, r2
+
+perf1, mse1, r2_1 = bootstrap_evaluation(y_test1, y_pred1)
+perf2, mse2, r2_2 = bootstrap_evaluation(y_test2, y_pred2)
+
+print(f"Bootstrap Performance for {outcome1}: Mean={perf1:.4f}, MSE={mse1:.4f}, R^2={r2_1:.4f}")
+print(f"Bootstrap Performance for {outcome2}: Mean={perf2:.4f}, MSE={mse2:.4f}, R^2={r2_2:.4f}")
 
 
 # Feature importance plots
@@ -164,3 +232,12 @@ feature_names = list(X_test.columns)
 
 shap.summary_plot(shap_values1, X_test, feature_names=feature_names)
 shap.summary_plot(shap_values2, X_test, feature_names=feature_names)
+
+# SHAP Feature interaction analysis
+shap_interaction_values = shap.TreeExplainer(model1).shap_interaction_values(X_test)
+shap.summary_plot(shap_interaction_values, X_test)
+
+shap_interaction_values = shap.TreeExplainer(model2).shap_interaction_values(X_test)
+shap.summary_plot(shap_interaction_values, X_test)
+
+
