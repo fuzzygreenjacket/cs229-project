@@ -9,7 +9,7 @@ This repository contains code and analysis related to evaluating the debt sustai
 
 Our goal is to provide predictive insights that aid in identifying municipalities at higher risk of financial difficulties.
 
-##Dataset
+## Dataset
 
 We analyze LGFV debt data alongside macroeconomic indicators across all prefecture-level cities in China from 2018 to 2023. Data sources include:
 \begin{itemize}
@@ -19,45 +19,38 @@ We analyze LGFV debt data alongside macroeconomic indicators across all prefectu
 
 ## File Description
 Our repository contains the following key files:
+- `Summary of statistics.Rmd` — R Markdown document summarizing data statistics.
+- `lgfv_data_cleaning.py` — Cleans and preprocesses the raw dataset.
+- `baseline_linear_regression.py` — Baseline linear regression implementation with all features.
+- `baseline_linear_regression_best_features.py` — Linear regression with selected optimal features.
+- `baseline_linear_regression_feature_engineering.py` — Linear regression with engineered features.
+- `XGBoost random split.py` — XGBoost model implementation.
+- `random_forest_regressor.py` — Random forest model for prediction.
+- `random_forest_regressor_grid_search.py` — Hyperparameter tuning via grid search for Random Forest.
+- `rnn.py` — Recurrent Neural Network implementation.
+- `rnn_hyperparam.py` — Hyperparameter tuning for the RNN.
 
-\begin{itemize}
-    \item \texttt{Summary of statistics.Rmd} -- R Markdown document summarizing data statistics
-    \item \texttt{lgfv\_data\_cleaning.py} -- Cleans and preprocesses the raw dataset.
-    \item \texttt{baseline\_linear\_regression.py} -- Baseline linear regression implementation with all features
-    \item \texttt{baseline\_linear\_regression\_best\_features.py} -- Linear regression with selected optimal features
-    \item \texttt{baseline\_linear\_regression\_feature\_engineering.py} -- Linear regression with engineered features
-    \item \texttt{XGBoost random split.py} -- XGBoost model implementation
-    \item \texttt{random\_forest\_regressor.py} -- Random forest model for prediction
-    \item \texttt{random\_forest\_regressor\_grid\_search.py} -- Hyperparameter tuning via grid search for Random Forest
-    \item \texttt{rnn.py} -- Recurrent Neural Network implementation
-    \item \texttt{rnn\_hyperparam.py} -- Hyperparameter tuning for the RNN..
-\end{itemize}
+## Methods
+- **Linear Regression** (Baseline)
+- **XGBoost & Random Forest** (Tree-based models to capture non-linear relationships)
+- **Recurrent Neural Network (RNN)** (Capturing sequential dependencies in financial data)
+- **Ensemble Model** (Integration of RNN and Random Forest)
 
-#Methods
-\begin{itemize}
-	\item Linear Regression (Baseline)
-	\item XGBoost \& Random Forest (Tree-based models to capture non-linear relationships)
-	\item Recurrent Neural Network (RNN) (Capturing sequential dependencies in financial data)
-	\item Ensemble Model (Integration of RNN and Random Forest)
-\end{itemize}
-
-#Evaluation
+## Evaluation
 Models are evaluated using Mean Squared Error (MSE) with bootstrap resampling and $R^2$ scores. SHAP analysis to identify key predictors influencing model decisions
 
-#Usage
+## Usage
 To replicate the analyses:
-\begin{itemize}
-	\item Run data cleaning: python lgfv_data_cleaning.py.
-	\item Train and evaluate models sequentially (linear regression → tree-based models → RNN).
-	\item Conduct hyperparameter tuning where relevant (Random Forest, XGBoost, RNN).
-\end{itemize}
+1. Run data cleaning: python lgfv_data_cleaning.py.
+2. Train and evaluate models sequentially (linear regression → tree-based models → RNN).
+3. Conduct hyperparameter tuning where relevant (Random Forest, XGBoost, RNN).
 
 ## Team Members
 - Jong Beom (JB) Lim, Stanford Computer Science
 - Xinru Pan, Stanford Political Science
 - Matt Hsu, Stanford Mathematics
 
-#Acknowledgments
+## Acknowledgments
 This project utilizes data from the Wind Database and Chinese Statistical Yearbooks, and references prior works in the field, including methods adapted from [Zhang et al., 2022] and others.
 
 
