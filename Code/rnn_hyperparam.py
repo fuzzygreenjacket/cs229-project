@@ -27,7 +27,8 @@ full_features = [
     "Budget Revenue(CNY,B)", "Revenue of Government-Managed Funds(CNY,B)",
     "State-owned Land Transfer Income/Budget Revenue(%)"
 ]
-tuning_outcome = "LGFV Interest-bearing Debt(CNY,B) / GDP(CNY,B)"
+
+outcome = "LGFV Interest-bearing Debt(CNY,B) / GDP(CNY,B)"
 
 class RNNRegression(nn.Module):
     def __init__(self, input_size, hidden_size):
@@ -61,30 +62,30 @@ for s in seeds_list:
         train_data_seed = pd.concat([train_data_seed, train], ignore_index=True)
         test_data_seed = pd.concat([test_data_seed, test], ignore_index=True)
     
-    scaler_feat = StandardScaler()
-    scaler_out = StandardScaler()
-    scaler_feat.fit(train_data_seed[full_features])
+    scaler_feature = StandardScaler()
+    scaler_output = StandardScaler()
+    scaler_feature.fit(train_data_seed[full_features])
     train_data_scaled = train_data_seed.copy()
     test_data_scaled = test_data_seed.copy()
-    train_data_scaled[full_features] = scaler_feat.transform(train_data_seed[full_features])
-    test_data_scaled[full_features] = scaler_feat.transform(test_data_seed[full_features])
-    scaler_out.fit(train_data_scaled[[tuning_outcome]])
-    train_data_scaled[tuning_outcome] = scaler_out.transform(train_data_scaled[[tuning_outcome]])
-    test_data_scaled[tuning_outcome] = scaler_out.transform(test_data_scaled[[tuning_outcome]])
+    train_data_scaled[full_features] = scaler_feature.transform(train_data_seed[full_features])
+    test_data_scaled[full_features] = scaler_feature.transform(test_data_seed[full_features])
+    scaler_output.fit(train_data_scaled[[outcome]])
+    train_data_scaled[outcome] = scaler_output.transform(train_data_scaled[[outcome]])
+    test_data_scaled[outcome] = scaler_output.transform(test_data_scaled[[outcome]])
     
-    for mom in momentum_values:
-        for lr_val in lr_values:
+    for m in momentum_values:
+        for l in lr_values:
             train_split, val_split = train_test_split(train_data_scaled, test_size=0.2, random_state=s)
             x_train = torch.from_numpy(train_split[full_features].to_numpy()).float().unsqueeze(1)
-            y_train = torch.from_numpy(train_split[tuning_outcome].to_numpy()).float()
+            y_train = torch.from_numpy(train_split[outcome].to_numpy()).float()
             x_val = torch.from_numpy(val_split[full_features].to_numpy()).float().unsqueeze(1)
-            y_val = torch.from_numpy(val_split[tuning_outcome].to_numpy()).float()
+            y_val = torch.from_numpy(val_split[outcome].to_numpy()).float()
             x_test = torch.from_numpy(test_data_scaled[full_features].to_numpy()).float().unsqueeze(1)
-            y_test = torch.from_numpy(test_data_scaled[tuning_outcome].to_numpy()).float()
+            y_test = torch.from_numpy(test_data_scaled[outcome].to_numpy()).float()
             
             model = RNNRegression(input_size=len(full_features), hidden_size=hidden_size)
             criterion = nn.MSELoss()
-            optimizer = optim.SGD(model.parameters(), lr=lr_val, momentum=mom)
+            optimizer = optim.SGD(model.parameters(), lr=l, momentum=m)
             scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.9, patience=100, verbose=False)
             
             best_val_loss = float('inf')
@@ -115,35 +116,35 @@ for s in seeds_list:
             
             model.eval()
             with torch.no_grad():
-                preds = model(x_test).squeeze()
-            preds_orig = scaler_out.inverse_transform(preds.numpy().reshape(-1, 1)).squeeze()
-            y_test_orig = scaler_out.inverse_transform(y_test.numpy().reshape(-1, 1)).squeeze()
-            mse_val = np.mean((y_test_orig - preds_orig)**2)
+                predictions = model(x_test).squeeze()
+            prediction_original = scaler_output.inverse_transform(predictions.numpy().reshape(-1, 1)).squeeze()
+            y_test_original = scaler_output.inverse_transform(y_test.numpy().reshape(-1, 1)).squeeze()
+            mse = np.mean((y_test_original - prediction_original)**2)
             
-            n = len(y_test_orig)
+            n = len(y_test_original)
             perf_scores = []
             for _ in range(1000):
                 indices = np.random.choice(n, size=n, replace=True)
-                mse_sample = np.mean((y_test_orig[indices] - preds_orig[indices])**2)
+                mse_sample = np.mean((y_test_original[indices] - prediction_original[indices])**2)
                 perf_scores.append(-np.log(mse_sample))
-            performance_metric = np.mean(perf_scores)
+            performance = np.mean(perf_scores)
             
             all_results.append({
                 "Seed": s,
-                "Learning_Rate": lr_val,
-                "Momentum": mom,
-                "Performance": performance_metric,
-                "MSE": mse_val
+                "Learning_Rate": l,
+                "Momentum": m,
+                "Performance": performance,
+                "MSE": mse
             })
-            print(f"Tuning: Seed={s}, LR={lr_val}, Momentum={mom}, Performance={performance_metric:.4f}, MSE={mse_val:.4f}")
+            print(f"Tuning: Seed={s}, LR={l}, Momentum={m}, Performance={performance}, MSE={mse}")
 
 results_df = pd.DataFrame(all_results)
 grouped = results_df.groupby(["Learning_Rate", "Momentum"]).mean().reset_index()
 
 plt.figure(figsize=(8,6))
-for mom in momentum_values:
-    subset = grouped[grouped["Momentum"] == mom]
-    plt.plot(subset["Learning_Rate"], subset["Performance"], marker='o', label=f'Momentum={mom}')
+for m in momentum_values:
+    subset = grouped[grouped["Momentum"] == m]
+    plt.plot(subset["Learning_Rate"], subset["Performance"], marker='o', label=f'Momentum={m}')
 
 plt.xticks(lr_values, rotation=45, ha="right")
 plt.xlabel("Learning Rate")

@@ -120,19 +120,19 @@ def evaluate_ensemble(outcome, features, rf_hyperparams):
         indices = np.random.choice(n, size=n, replace=True)
         mse_sample = np.mean((test_true[indices] - ensemble_preds[indices])**2)
         performance_scores.append(-np.log(mse_sample + 1e-10))
-    performance_metric = np.mean(performance_scores)
+    performance = np.mean(performance_scores)
     
     test_mse = mean_squared_error(test_true, ensemble_preds)
     test_r2 = r2_score(test_true, ensemble_preds)
     
     print(f"Outcome: {outcome}")
-    print(f"Validation MSE - XGBoost: {mse_xgb_val:.4f}, RF: {mse_rf_val:.4f}")
-    print(f"Computed Weights - XGBoost: {weight_xgb:.4f}, RF: {weight_rf:.4f}")
-    print(f"Performance Metric (bootstrap): {performance_metric:.4f}")
-    print(f"Test R²: {test_r2:.4f}\n")
+    print(f"Validation MSE - XGBoost: {mse_xgb_val}, RF: {mse_rf_val}")
+    print(f"Computed Weights - XGBoost: {weight_xgb}, RF: {weight_rf}")
+    print(f"Performance (bootstrap): {performance}")
+    print(f"Test R²: {test_r2}\n")
 
     
-    return test_mse, test_r2, performance_metric, weight_xgb, weight_rf
+    return test_mse, test_r2, performance, weight_xgb, weight_rf
 
 print("Full Features")
 evaluate_ensemble(outcome1, full_features, hyperparams1)

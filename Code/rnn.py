@@ -4,7 +4,6 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score
@@ -74,18 +73,18 @@ lr = 0.005
 momentum = 0.3
 
 def evaluate_model(features_used, outcome_col):
-    scaler_feat = StandardScaler()
-    scaler_out = StandardScaler()
+    scaler_feature = StandardScaler()
+    scaler_output = StandardScaler()
     
-    scaler_feat.fit(train_data[full_features])
+    scaler_feature.fit(train_data[full_features])
     train_scaled = train_data.copy()
     test_scaled = test_data.copy()
-    train_scaled[full_features] = scaler_feat.transform(train_data[full_features])
-    test_scaled[full_features] = scaler_feat.transform(test_data[full_features])
+    train_scaled[full_features] = scaler_feature.transform(train_data[full_features])
+    test_scaled[full_features] = scaler_feature.transform(test_data[full_features])
     
-    scaler_out.fit(train_scaled[[outcome_col]])
-    train_scaled[outcome_col] = scaler_out.transform(train_scaled[[outcome_col]])
-    test_scaled[outcome_col] = scaler_out.transform(test_scaled[[outcome_col]])
+    scaler_output.fit(train_scaled[[outcome_col]])
+    train_scaled[outcome_col] = scaler_output.transform(train_scaled[[outcome_col]])
+    test_scaled[outcome_col] = scaler_output.transform(test_scaled[[outcome_col]])
     
     train_split, val_split = train_test_split(train_scaled, test_size=0.2, random_state=seed)
     
@@ -126,41 +125,37 @@ def evaluate_model(features_used, outcome_col):
         else:
             patience_counter += 1
         
-        if epoch % 100 == 0:
-            print(f'Epoch: {epoch}, Train Loss: {loss.item():.4f}, Val Loss: {val_loss.item():.4f}')
-        
         if patience_counter >= patience:
-            print(f"Early stopping at epoch {epoch} with best Val Loss: {best_val_loss:.4f}")
             break
     
     model.eval()
     with torch.no_grad():
-        preds = model(x_test).squeeze()
-    preds_orig = scaler_out.inverse_transform(preds.numpy().reshape(-1,1)).squeeze()
-    y_test_orig = scaler_out.inverse_transform(y_test.numpy().reshape(-1,1)).squeeze()
+        predictions = model(x_test).squeeze()
+    prediction_original = scaler_output.inverse_transform(predictions.numpy().reshape(-1,1)).squeeze()
+    y_test_original = scaler_output.inverse_transform(y_test.numpy().reshape(-1,1)).squeeze()
     
-    n = len(y_test_orig)
+    n = len(y_test_original)
     perf_scores = []
     for _ in range(1000):
         indices = np.random.choice(n, size=n, replace=True)
-        mse_sample = np.mean((y_test_orig[indices] - preds_orig[indices])**2)
+        mse_sample = np.mean((y_test_original[indices] - prediction_original[indices])**2)
         perf_scores.append(-np.log(mse_sample + 1e-10))
-    performance_metric = np.mean(perf_scores)
-    mse_value = np.mean((y_test_orig - preds_orig)**2)
-    r2 = r2_score(y_test_orig, preds_orig)
+    performance = np.mean(perf_scores)
+    mse = np.mean((y_test_original - prediction_original)**2)
+    r2 = r2_score(y_test_original, prediction_original)
     
-    return performance_metric, mse_value, r2
+    return performance, mse, r2
 
 
 results = []
 for feature_set, label in [(full_features, "Full Features"), (selected_features, "Selected Features")]:
     for outcome in outcomes:
-        perf, mse_val, r2_val = evaluate_model(feature_set, outcome)
+        performance, mse, r2 = evaluate_model(feature_set, outcome)
         results.append({
             "Feature_Set": label,
             "Outcome": outcome,
-            "Performance": perf,
-            "MSE": mse_val,
-            "R^2": r2_val
+            "Performance": performance,
+            "MSE": mse,
+            "R^2": r2
         })
-        print(f"Experiment with {label} for {outcome}: Performance = {perf:.4f}, R^2 = {r2_val:.4f}")
+        print(f"Experiment with {label} for {outcome}: Performance = {perf}, R^2 = {r2}")

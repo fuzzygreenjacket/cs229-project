@@ -90,15 +90,15 @@ def evaluate_ensemble(outcome, features, rf_hyperparams):
     train_rnn = train_data.copy()
     test_rnn = test_data.copy()
     
-    scaler_feat = StandardScaler()
-    scaler_out = StandardScaler()
-    scaler_feat.fit(train_rnn[features])
-    train_rnn[features] = scaler_feat.transform(train_rnn[features])
-    test_rnn[features] = scaler_feat.transform(test_rnn[features])
+    scaler_feature = StandardScaler()
+    scaler_output = StandardScaler()
+    scaler_feature.fit(train_rnn[features])
+    train_rnn[features] = scaler_feature.transform(train_rnn[features])
+    test_rnn[features] = scaler_feature.transform(test_rnn[features])
     
-    scaler_out.fit(train_rnn[[outcome]])
-    train_rnn[outcome] = scaler_out.transform(train_rnn[[outcome]])
-    test_rnn[outcome] = scaler_out.transform(test_rnn[[outcome]])
+    scaler_output.fit(train_rnn[[outcome]])
+    train_rnn[outcome] = scaler_output.transform(train_rnn[[outcome]])
+    test_rnn[outcome] = scaler_output.transform(test_rnn[[outcome]])
     
     train_split_rnn, val_split_rnn = train_test_split(train_rnn, test_size=0.2, random_state=seed)
     
@@ -140,15 +140,15 @@ def evaluate_ensemble(outcome, features, rf_hyperparams):
     
     model.eval()
     with torch.no_grad():
-        rnn_val_preds = model(x_val).squeeze()
-    rnn_val_preds_orig = scaler_out.inverse_transform(rnn_val_preds.numpy().reshape(-1,1)).squeeze()
-    y_val_orig = scaler_out.inverse_transform(y_val.numpy().reshape(-1,1)).squeeze()
-    mse_rnn_val = mean_squared_error(y_val_orig, rnn_val_preds_orig)
+        rnn_val_predictions = model(x_val).squeeze()
+    rnn_val_prediction_original = scaler_output.inverse_transform(rnn_val_predictions.numpy().reshape(-1,1)).squeeze()
+    y_val_original = scaler_output.inverse_transform(y_val.numpy().reshape(-1,1)).squeeze()
+    mse_rnn_val = mean_squared_error(y_val_original, rnn_val_prediction_original)
     
     x_test = torch.from_numpy(test_rnn[features].to_numpy()).float().unsqueeze(1)
     with torch.no_grad():
         rnn_test_preds = model(x_test).squeeze()
-    rnn_test_preds_orig = scaler_out.inverse_transform(rnn_test_preds.numpy().reshape(-1,1)).squeeze()
+    rnn_test_preds_orig = scaler_output.inverse_transform(rnn_test_preds.numpy().reshape(-1,1)).squeeze()
     train_rf, val_rf = train_test_split(train_data, test_size=0.2, random_state=seed)
     
     rf_pipeline = make_pipeline(
@@ -173,22 +173,22 @@ def evaluate_ensemble(outcome, features, rf_hyperparams):
     
     test_true = test_data[outcome].values
     n = len(test_true)
-    performance_scores = []
+    scores = []
     for _ in range(1000):
         indices = np.random.choice(n, size=n, replace=True)
         mse_sample = np.mean((test_true[indices] - ensemble_preds[indices])**2)
-        performance_scores.append(-np.log(mse_sample + 1e-10))
-    performance_metric = np.mean(performance_scores)
+        scores.append(-np.log(mse_sample + 1e-10))
+    performance = np.mean(scores)
     
     test_mse = mean_squared_error(test_true, ensemble_preds)
     test_r2 = r2_score(test_true, ensemble_preds)
     
     print(f"Outcome: {outcome}")
-    print(f"Computed Weights - RNN: {weight_rnn:.4f}, RF: {weight_rf:.4f}")
-    print(f"Test R^2: {test_r2:.4f}")
-    print(f"Performance Metric (bootstrap): {performance_metric:.4f}")
+    print(f"Computed Weights - RNN: {weight_rnn}, RF: {weight_rf}")
+    print(f"Test R^2: {test_r2}")
+    print(f"Performance Metric (bootstrap): {performance}")
     print("")
-    return test_mse, test_r2, performance_metric, weight_rnn, weight_rf
+    return test_mse, test_r2, performance, weight_rnn, weight_rf
 
 print("Full Features")
 evaluate_ensemble(outcome1, full_features, hyperparams1)
