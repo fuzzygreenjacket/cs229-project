@@ -65,7 +65,7 @@ all_features = [
 outcome1 = "LGFV Interest-bearing Debt(CNY,B) / GDP(CNY,B)" 
 outcome2 = "Balance of Urban Investment Bond(CNY,B) / GDP(CNY,B)"
 
-# optimal features for outcome 1
+# features for outcome 1
 features1 = [
     "Liability Ratio(%)", 
     "Debt Ratio(%)", 
@@ -75,7 +75,7 @@ features1 = [
     "State-owned Land Transfer Income/Budget Revenue(%)"
 ]
 
-# optimal features for outcome 2
+# features for outcome 2
 features2 = [
     "Liability Ratio(%)", 
     "Debt Ratio(%)", 
@@ -122,7 +122,6 @@ def lin_reg(outcome, features, num):
 
     model = LinearRegression(len(features))
     criterion = nn.MSELoss()
-    # criterion = nn.HuberLoss()
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
     num_epochs = 1000
@@ -153,22 +152,26 @@ def lin_reg(outcome, features, num):
     log_error = -np.log(mse + 1e-10)
 
     print(f'MSE: {mse}')
-    # print(f'Huber: {huber}')
     print(f'R2: {r2}')
     print(f'log error: {log_error}')
 
-    # select 100 random points to plot (otherwise too crowded)
+    # select 50 random points to plot (otherwise too crowded)
     sample = np.random.choice(len(y_test_np), 50, replace=False)
     predictions_sample = predictions.detach().numpy()[sample]
     test_sample = y_test_np[sample]
 
     # scatterplot
     plt.figure(figsize=(7, 5))
-    plt.scatter(range(len(test_sample)), test_sample, label="Actual Values", alpha=0.5, color="blue")
-    plt.scatter(range(len(predictions_sample)), predictions_sample, label="Predicted Values", alpha=0.5, color="orange")
+    plt.scatter(range(len(test_sample)), test_sample, label="Actual Values", alpha=0.6, color="green")
+    plt.scatter(range(len(predictions_sample)), predictions_sample, label="Predicted Values", alpha=0.6, color="red")
 
-    plt.xlabel("Sample")
-    plt.ylabel(outcome)
+    plt.xlabel("Sample Number")
+    if outcome == outcome1:
+        plt.ylabel("LGFV Debt")
+    elif outcome == outcome2:
+        plt.ylabel("Urban Investment Bond")
+    else:
+        plt.ylabel(outcome)
     plt.title("True vs. Predicted Values")
     plt.legend()
     plt.savefig("../Visualizations/residual_plot_" + str(num) + ".png", dpi=300) 

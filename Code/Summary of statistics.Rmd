@@ -1,7 +1,7 @@
 ---
 title: "cs229 group project"
 author: "Xinru Pan"
-date: "2025-02-22"
+date: "2025-03-14"
 output: pdf_document
 ---
 
@@ -9,37 +9,99 @@ output: pdf_document
 library(readxl)
 library(dplyr)
 library(stargazer)
+library(ggplot2)
+library(magrittr)
+library(hchinamap)
+
+
+# download china map
+dir <- tempdir()
+download.file('https://czxb.github.io/br/chinadf.rda', file.path(dir, 'chinadf.rda'))
+load(file.path(dir, 'chinadf.rda'), verbose = TRUE)
+
 
 getwd()
 
 # Load the dataset
-data <- read_excel("/Users/panxinru/Desktop/Stanford/2025 Winter/cs229/Advanced model/merged_city_year_panel milestone updated.xlsx")
+data <- read_excel("/Users/panxinru/Desktop/Stanford/2025 Winter/cs229/Advanced model/merged_city_year_panel Chinese name.xlsx")
 
 data <- data %>% 
-  mutate(across(-c(province, Region), ~ as.numeric(.)))
+  mutate(across(-c(province, city), ~ as.numeric(.))) %>%
+  mutate(LGFV_Debt_GDP = `LGFV Interest-bearing Debt(CNY,B)`/ `GDP(CNY,B)` * 100,
+         Urban_Bonds_GDP = `Balance of Urban Investment Bond(CNY,B)`/ `GDP(CNY,B)` * 100) %>%
+  filter(year != 2024)
 
-# Compute summary statistics
+# compute summary statistics
 summary(data) 
 
 stargazer(as.data.frame(data))
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
-plot(pressure)
+# Histogram for LGFV Interest-bearing Debt/GDP and Balance of Urban Investment Bonds/GDP
+ggplot(data %>% filter(!is.na(LGFV_Debt_GDP)), aes(x = LGFV_Debt_GDP)) +
+  geom_histogram(binwidth = 3, fill = "blue", alpha = 0.6, color = "black") +
+  ggtitle("Histogram of LGFV Interest-bearing Debt/GDP") +
+  xlab("LGFV Interest-bearing Debt/GDP (%)") +
+  ylab("Frequency") +
+  theme_minimal()
+
+
+ggplot(data %>% filter(!is.na(Urban_Bonds_GDP)), aes(x = Urban_Bonds_GDP)) +
+  geom_histogram(binwidth = 3, fill = "red", alpha = 0.6, color = "black") +
+  ggtitle("Histogram of Balance of Urban Investment Bonds/GDP") +
+  xlab("Balance of Urban Investment Bonds/GDP (%)") +
+  ylab("Frequency") +
+  theme_minimal()
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+# check name discrepancies in my 
+setdiff(data$city, chinadf$name)
+```
+
+
+```{r}
+data_2023 <- data %>%
+  filter(year == 2023)
+
+library(htmlwidgets)
+install.packages("webshot")
+library(webshot)
+
+# Ensure PhantomJS is installed
+webshot::install_phantomjs()
+
+# Define function to save map as PNG
+save_hchinamap_as_png <- function(map, filename) {
+  # Save as an HTML file
+  html_file <- paste0(filename, ".html")
+  saveWidget(map, html_file, selfcontained = TRUE)
+  
+  # Convert HTML to PNG
+  png_file <- paste0(filename, ".png")
+  webshot(html_file, file = png_file, vwidth = 1200, vheight = 800, delay = 1)
+  
+  return(png_file)
+}
+
+# Generate and Save Maps
+map_anhui <- hchinamap(name = data_2023$city, value = data_2023$LGFV_Debt_GDP,
+                        title = "Anhui LGFV Debt, 2023", region = "Anhui")
+save_hchinamap_as_png(map_anhui, "anhui_lgfv_debt")
+
+map_zhejiang <- hchinamap(name = data_2023$city, value = data_2023$LGFV_Debt_GDP,
+                          title = "Zhejiang LGFV Debt, 2023", region = "Zhejiang")
+save_hchinamap_as_png(map_zhejiang, "zhejiang_lgfv_debt")
+
+map_shandong <- hchinamap(name = data_2023$city, value = data_2023$LGFV_Debt_GDP,
+                          title = "Shandong LGFV Debt, 2023", region = "Shandong")
+save_hchinamap_as_png(map_shandong, "shandong_lgfv_debt")
+
+map_guangxi <- hchinamap(name = data_2023$city, value = data_2023$LGFV_Debt_GDP,
+                          title = "Guangxi LGFV Debt, 2023", region = "Guangxi")
+save_hchinamap_as_png(map_guangxi, "guangxi_lgfv_debt")
+
+```

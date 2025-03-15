@@ -96,16 +96,11 @@ def forest_grid_search(outcome, features, num):
         RandomForestRegressor()
     )
 
-# param_grid = {
-#            "randomforestregressor__n_estimators": [10, 100, 1000],
-#            "randomforestregressor__criterion": ["squared_error", "friedman_mse", "poisson"],
-#            "randomforestregressor__min_samples_split": [1.0, 2, 3],
-#            "randomforestregressor__min_samples_leaf": [1, 5]
-#        },
-
     param_grid = {
-        "randomforestregressor__n_estimators": [10, 100, 1000],
-        "randomforestregressor__min_samples_leaf": [1, 5]
+            "randomforestregressor__n_estimators": [10, 100, 1000],
+            "randomforestregressor__criterion": ["squared_error", "friedman_mse", "poisson"],
+            "randomforestregressor__min_samples_split": [1.0, 2, 3],
+            "randomforestregressor__min_samples_leaf": [1, 5]
     }
 
     # test different hyperparameters with grid_cv
@@ -117,7 +112,7 @@ def forest_grid_search(outcome, features, num):
     )
 
     grid_cv.fit(x_train, y_train)
-    
+
     print(grid_cv.best_params_)
 
 # run forest_regression

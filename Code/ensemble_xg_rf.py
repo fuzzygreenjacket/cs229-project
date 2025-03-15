@@ -12,7 +12,7 @@ seed = 8
 random.seed(seed)
 np.random.seed(seed)
 
-df = pd.read_excel("merged_city_year_panel milestone updated.xlsx")
+df = pd.read_excel("../Cleaned Data/merged_city_year_panel milestone updated.xlsx")
 to_clean = [
     "Liability Ratio(%)",
     "Debt Ratio(%)",

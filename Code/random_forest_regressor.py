@@ -143,28 +143,19 @@ def random_forest_regressor(outcome, features, hyperparams, num):
     
     # scatterplot
     plt.figure(figsize=(7, 5))
-    plt.scatter(range(len(test_sample)), test_sample, label="Actual Values", alpha=0.5, color="blue")
-    plt.scatter(range(len(predictions_sample)), predictions_sample, label="Predicted Values", alpha=0.5, color="orange")
+    plt.scatter(range(len(test_sample)), test_sample, label="Actual Values", alpha=0.6, color="green")
+    plt.scatter(range(len(predictions_sample)), predictions_sample, label="Predicted Values", alpha=0.6, color="red")
     plt.xlabel("Sample")
-    plt.ylabel(outcome)
+    if outcome == outcome1:
+        plt.ylabel("LGFV Debt")
+    elif outcome == outcome2:
+        plt.ylabel("Urban Investment Bond")
+    else:
+        plt.ylabel(outcome)
     plt.title("True vs. Predicted Values")
     plt.legend()
     plt.savefig("forest_plot_" + str(num) + ".png", dpi=300) 
     plt.show()
-
-
-    # code borrowed from scikit learn: https://scikit-learn.org/stable/auto_examples/ensemble/plot_forest_importances.html
-    # this plots the feature importances from the random forest split based on mean decrease in impurity
-    feature_names = [f"{features[i].split(' ', 1)[0]}" for i in range(x_train.shape[1])]
-    importances = pipeline.named_steps["randomforestregressor"].feature_importances_
-    std = np.std([tree.feature_importances_ for tree in pipeline.named_steps["randomforestregressor"].estimators_], axis=0)
-    fig, ax = plt.subplots()
-    forest_importances = pd.Series(importances, index=feature_names)
-    forest_importances.plot.bar(yerr=std, ax=ax)
-    ax.set_title("Feature importances using MDI")
-    ax.set_ylabel("Mean decrease in impurity")
-    fig.tight_layout()
-    fig.savefig("feature_importances_" + str(num) + ".png")
 
     # histogram
     plt.clf()
