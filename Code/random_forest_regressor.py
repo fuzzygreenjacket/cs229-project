@@ -15,9 +15,10 @@ from sklearn.metrics import r2_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.metrics import mean_squared_error
+import seaborn as sns
 
 
-df = pd.read_excel("merged_city_year_panel milestone updated.xlsx")
+df = pd.read_excel("../Cleaned Data/merged_city_year_panel milestone updated.xlsx")
 
 # this list contains all possible columns we might use as features or outcomes
 # we need to clean this data and remove NAN values 
@@ -169,16 +170,18 @@ def random_forest_regressor(outcome, features, hyperparams, num):
     plt.clf()
     deltas = abs(predictions - y_test)
     if outcome == outcome1:
-        plt.hist(deltas, bins=np.arange(0, 1.25, 0.05))
-        plt.ylim(0, 150)
+        sns.histplot(deltas, bins=np.arange(0, 1.25, 0.05), kde=True, legend=False)
+        plt.ylim(0, 135)
+        plt.title("Random Forest Deltas: LGFV Debt")
     elif outcome == outcome2:
-        plt.hist(deltas, bins=np.arange(0, 0.5, 0.025))
-        plt.ylim(0, 200)
+        sns.histplot(deltas, bins=np.arange(0, 0.5, 0.025), kde=True, legend=False)
+        plt.ylim(0, 185)
+        plt.title("Random Forest Deltas: Urban Investment Bond")
     else:
-        plt.hist(deltas)
+        sns.histplot(deltas, kde=True)
     plt.xlabel("Difference Between Prediction and True Value")
     plt.ylabel("Count")
-    plt.savefig("random_forest_histogram" + str(num) + ".png", dpi=300) 
+    plt.savefig("../Visualizations/random_forest_histogram" + str(num) + ".png", dpi=300) 
     plt.show()
     return mse, r2, log_error
 
