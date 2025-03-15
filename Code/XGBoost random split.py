@@ -12,7 +12,7 @@ from bayes_opt import BayesianOptimization
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 
-df = pd.read_excel("merged_city_year_panel milestone updated.xlsx")
+df = pd.read_excel("../Cleaned Data/merged_city_year_panel milestone updated.xlsx")
 
 to_clean = [
     "Liability Ratio(%)",
