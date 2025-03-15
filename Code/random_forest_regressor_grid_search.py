@@ -15,7 +15,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import GridSearchCV
 
-df = pd.read_excel("merged_city_year_panel milestone updated.xlsx")
+df = pd.read_excel("../Cleaned Data/merged_city_year_panel milestone updated.xlsx")
 
 # this list contains all possible columns we might use as features or outcomes
 # we need to clean this data and remove NAN values 
@@ -96,20 +96,28 @@ def forest_grid_search(outcome, features, num):
         RandomForestRegressor()
     )
 
+# param_grid = {
+#            "randomforestregressor__n_estimators": [10, 100, 1000],
+#            "randomforestregressor__criterion": ["squared_error", "friedman_mse", "poisson"],
+#            "randomforestregressor__min_samples_split": [1.0, 2, 3],
+#            "randomforestregressor__min_samples_leaf": [1, 5]
+#        },
+
+    param_grid = {
+        "randomforestregressor__n_estimators": [10, 100, 1000],
+        "randomforestregressor__min_samples_leaf": [1, 5]
+    }
+
     # test different hyperparameters with grid_cv
     grid_cv = GridSearchCV(
         pipeline,
-        param_grid = {
-            "randomforestregressor__n_estimators": [10, 100, 1000],
-            "randomforestregressor__criterion": ["squared_error", "friedman_mse", "poisson"],
-            "randomforestregressor__min_samples_split": [1.0, 2, 3],
-            "randomforestregressor__min_samples_leaf": [1, 5]
-        },
+        param_grid,
         scoring="neg_mean_squared_error",
         cv=5
     )
 
     grid_cv.fit(x_train, y_train)
+    
     print(grid_cv.best_params_)
 
 # run forest_regression
