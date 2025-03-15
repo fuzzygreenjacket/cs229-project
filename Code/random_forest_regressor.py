@@ -171,10 +171,12 @@ def random_forest_regressor(outcome, features, hyperparams, num):
     deltas = abs(predictions - y_test)
     if outcome == outcome1:
         sns.histplot(deltas, bins=np.arange(0, 1.25, 0.05), kde=True, legend=False)
+        plt.xlim(0, 1.25)
         plt.ylim(0, 135)
         plt.title("Random Forest Deltas: LGFV Debt")
     elif outcome == outcome2:
         sns.histplot(deltas, bins=np.arange(0, 0.5, 0.025), kde=True, legend=False)
+        plt.xlim(0, .5)
         plt.ylim(0, 185)
         plt.title("Random Forest Deltas: Urban Investment Bond")
     else:

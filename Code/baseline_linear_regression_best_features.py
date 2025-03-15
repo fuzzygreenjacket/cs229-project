@@ -180,10 +180,12 @@ def lin_reg(outcome, features, num):
     # manually set bin size based on outcome
     if outcome == outcome1:
         sns.histplot(deltas, bins=np.arange(0, 1.25, 0.05), kde=True, legend=False)
+        plt.xlim(0, 1.25)
         plt.ylim(0, 135)
         plt.title("Linear Regression Deltas: LGFV Debt")
     elif outcome == outcome2:
         sns.histplot(deltas, bins=np.arange(0, 0.5, 0.025), kde=True, legend=False)
+        plt.xlim(0, .5)
         plt.ylim(0, 185)
         plt.title("Linear Regression Deltas: Urban Investment Bond")
     else:
