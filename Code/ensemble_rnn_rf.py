@@ -186,7 +186,7 @@ def evaluate_ensemble(outcome, features, rf_hyperparams):
     print(f"Outcome: {outcome}")
     print(f"Computed Weights - RNN: {weight_rnn:.4f}, RF: {weight_rf:.4f}")
     print(f"Test R^2: {test_r2:.4f}")
-    print(f"Bootstrap: {performance_metric:.4f}")
+    print(f"Performance Metric (bootstrap): {performance_metric:.4f}")
     print("")
     return test_mse, test_r2, performance_metric, weight_rnn, weight_rf
 
