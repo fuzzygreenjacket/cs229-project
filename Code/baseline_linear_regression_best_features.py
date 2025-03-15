@@ -122,7 +122,6 @@ def lin_reg(outcome, features, num):
 
     model = LinearRegression(len(features))
     criterion = nn.MSELoss()
-    # criterion = nn.HuberLoss()
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
     num_epochs = 1000
@@ -153,7 +152,6 @@ def lin_reg(outcome, features, num):
     log_error = -np.log(mse + 1e-10)
 
     print(f'MSE: {mse}')
-    # print(f'Huber: {huber}')
     print(f'R2: {r2}')
     print(f'log error: {log_error}')
 

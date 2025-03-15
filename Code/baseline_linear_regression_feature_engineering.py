@@ -19,7 +19,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score
 
 
-df = pd.read_excel("merged_city_year_panel milestone updated.xlsx")
+df = pd.read_excel("../Cleaned Data/merged_city_year_panel milestone updated.xlsx")
 
 # this list contains all possible columns we might use as features or outcomes
 # we need to clean this data and remove NAN values 

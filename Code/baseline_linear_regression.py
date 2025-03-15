@@ -1,4 +1,4 @@
-# this is baseline linear regression for the four experiments that Cheryl suggested
+# this is baseline linear regression for several sets of features
 # 1. All the listed features predicting LGFV interest bearing debt/GDP
 # 2. All the listed features predicting balance of urban investment bond/GDP
 # 3. All the listed features + real estate investment/GDP predicting LGFV interest bearing debt/GDP
@@ -22,7 +22,7 @@ random.seed(seed)
 np.random.seed(seed)
 torch.manual_seed(seed)
 
-df = pd.read_excel("merged_city_year_panel milestone updated.xlsx")
+df = pd.read_excel("../Cleaned Data/merged_city_year_panel milestone updated.xlsx")
 
 # this list contains all possible columns we might use as features or outcomes
 # we need to clean this data and remove NAN values 
