@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.pipeline import make_pipeline
 import xgboost as xgb
 
-seed = 5
+seed = 8
 random.seed(seed)
 np.random.seed(seed)
 
@@ -128,7 +128,9 @@ def evaluate_ensemble(outcome, features, rf_hyperparams):
     print(f"Outcome: {outcome}")
     print(f"Validation MSE - XGBoost: {mse_xgb_val:.4f}, RF: {mse_rf_val:.4f}")
     print(f"Computed Weights - XGBoost: {weight_xgb:.4f}, RF: {weight_rf:.4f}")
-    print(f"Performance Metric (bootstrap): {performance_metric:.4f}\n")
+    print(f"Performance Metric (bootstrap): {performance_metric:.4f}")
+    print(f"Test R²: {test_r2:.4f}\n")
+
     
     return test_mse, test_r2, performance_metric, weight_xgb, weight_rf
 
