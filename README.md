@@ -51,9 +51,10 @@ To replicate the analyses:
 ## Acknowledgments
 This project utilizes data from the Wind Database and Chinese Statistical Yearbooks, and references prior works in the field, including methods adapted from [Zhang et al., 2022] and others.
 
+## Poster
 ![Poster](Visualizations/CS_229_Poster.png)
 
-## [Final Report](https://drive.google.com/file/d/1tvssbpC1UpgxN4PRa4Oxyv3TqyEQ1ofH/view?usp=drive_link)
+## [Report](https://drive.google.com/file/d/1tvssbpC1UpgxN4PRa4Oxyv3TqyEQ1ofH/view?usp=drive_link)
 
 
 
